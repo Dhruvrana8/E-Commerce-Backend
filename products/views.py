@@ -1,3 +1,5 @@
+from traceback import print_tb
+
 from django.contrib.admin.templatetags.admin_list import pagination
 from django.core import paginator
 from rest_framework import status
@@ -12,13 +14,21 @@ from .pagination import CustomPageNumberPagination
 # Create your views here.
 class ProductListView(APIView):
     def get(self, request, format=None):
-        products = Products.objects.all()
+        id = request.GET.get('id')
+        products = Products.objects.filter(id=id) if id else Products.objects.all()
+
         paginator = CustomPageNumberPagination()
-        paginated_todos = paginator.paginate_queryset(products, request)
-        serialized_data = ProductsSerializer(paginated_todos, many=True)
+        paginated_products = paginator.paginate_queryset(products, request)
+        serialized_data = ProductsSerializer(paginated_products, many=True)
         return paginator.get_paginated_response(serialized_data.data)
 
     def post(self, request, format=None):
+        # Need to check if the user
+        # have sent the ID of the Product
+        id = request.data.get('id')
+        if id:
+            return Response({'Error': 'Product ID should not be provided, it is automatically generated.'}, status=status.HTTP_400_BAD_REQUEST)
+
         name = request.data.get('name')
         price = request.data.get('price')
         category = request.data.get('category')
