@@ -1,18 +1,16 @@
-from traceback import print_tb
-
-from django.contrib.admin.templatetags.admin_list import pagination
-from django.core import paginator
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from products.models import Products
 from products.serializers import ProductsSerializer
 from .pagination import CustomPageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+
 
 
 # Create your views here.
 class ProductListView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request, format=None):
         id = request.GET.get('id')
         products = Products.objects.filter(id=id) if id else Products.objects.all()
