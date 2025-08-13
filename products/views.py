@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from products.models import Products
 from products.serializers import ProductsSerializer
-from .pagination import CustomPageNumberPagination
+from e_commerce_application.pagination import CustomPageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
 

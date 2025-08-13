@@ -41,7 +41,8 @@ INSTALLED_APPS = [
 EXTERNAL_APPS = [
     'products',
     'authentication',
-    'rest_framework.authtoken'
+    'rest_framework.authtoken',
+    'cart'
 ]
 
 INSTALLED_APPS += EXTERNAL_APPS

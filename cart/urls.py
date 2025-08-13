@@ -1,0 +1,9 @@
+from django.urls import path
+
+from .views import GetCartItemsView, AddCartItemView, DeleteCartItemView
+
+urlpatterns = [
+    path('items/', GetCartItemsView.as_view(), name='view-product-cart'),
+    path('item/', AddCartItemView.as_view(), name='add-product-cart'),
+    path('item/remove/', DeleteCartItemView.as_view(), name='remove-product-cart'),
+]
