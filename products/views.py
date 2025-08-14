@@ -4,56 +4,47 @@ from rest_framework.views import APIView
 from products.models import Products
 from products.serializers import ProductsSerializer
 from e_commerce_application.pagination import CustomPageNumberPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 
 # Create your views here.
 class ProductListView(APIView):
-    permission_classes = [IsAuthenticated]
+    # Only the Admin will be able to use this API
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def _get_paginated_products(self, request, product_id=None):
+        queryset = Products.objects.filter(id=product_id) if product_id else Products.objects.all()
+        paginator = CustomPageNumberPagination()
+        paginated_qs = paginator.paginate_queryset(queryset, request)
+        serializer = ProductsSerializer(paginated_qs, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def get(self, request, format=None):
-        id = request.GET.get('id')
-        products = Products.objects.filter(id=id) if id else Products.objects.all()
-
-        paginator = CustomPageNumberPagination()
-        paginated_products = paginator.paginate_queryset(products, request)
-        serialized_data = ProductsSerializer(paginated_products, many=True)
-        return paginator.get_paginated_response(serialized_data.data)
+        product_id = request.query_params.get("id")
+        return self._get_paginated_products(request, product_id)
 
     def post(self, request, format=None):
-        # Need to check if the user
-        # have sent the ID of the Product
-        id = request.data.get('id')
-        if id:
-            return Response({'Error': 'Product ID should not be provided, it is automatically generated.'},
-                            status=status.HTTP_400_BAD_REQUEST)
+        if not isinstance(request.data, list):
+            return Response({"error": "Expected a list of products."}, status=status.HTTP_400_BAD_REQUEST)
 
-        name = request.data.get('name')
-        price = request.data.get('price')
-        category = request.data.get('category')
-        description = request.data.get('description')
-
-        if name and price and description and category:
-            serializer = ProductsSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            else:
-                return Response(serializer.errors)
-        else:
-            return Response(
-                {'Error': 'Name, price, description, and category are required fields.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        serializer = ProductsSerializer(data=request.data, many=True)
+        if serializer.is_valid():
+            serializer.save()
+            return self._get_paginated_products(request)  # return updated product list
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, format=None):
-        id = request.data.get('id')
-        if id:
-            products = Products.objects.filter(id=id)
-            if products:
-                products.delete()
-                return Response({"Success": f'The {id} is deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
-            else:
-                return Response({'Error': f'ID: {id} not found.'}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({"Error": "id is a required field."}, status=status.HTTP_400_BAD_REQUEST)
+        product_id = request.data.get('id')
+
+        if product_id:  # Delete a specific product
+            try:
+                product = Products.objects.get(id=product_id)
+                product.delete()
+                return Response({"Success": f"Product ID {product_id} deleted successfully."},
+                                status=status.HTTP_204_NO_CONTENT)
+            except Products.DoesNotExist:
+                return Response({"Error": f"Product ID {product_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+        else:  # No ID means delete all products
+            count, _ = Products.objects.all().delete()
+            return Response({"Success": f"All {count} products deleted successfully."},
+                            status=status.HTTP_204_NO_CONTENT)
