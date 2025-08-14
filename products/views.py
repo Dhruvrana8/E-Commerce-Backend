@@ -13,7 +13,7 @@ class ProductListView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
 
     def _get_paginated_products(self, request, product_id=None):
-        queryset = Products.objects.filter(id=product_id) if product_id else Products.objects.all()
+        queryset = Products.objects.filter(id=product_id, is_deleted=False) if product_id else Products.objects.all()
         paginator = CustomPageNumberPagination()
         paginated_qs = paginator.paginate_queryset(queryset, request)
         serializer = ProductsSerializer(paginated_qs, many=True)
@@ -39,12 +39,13 @@ class ProductListView(APIView):
         if product_id:  # Delete a specific product
             try:
                 product = Products.objects.get(id=product_id)
-                product.delete()
+                product.is_deleted = True
+                product.save()
                 return Response({"Success": f"Product ID {product_id} deleted successfully."},
                                 status=status.HTTP_204_NO_CONTENT)
             except Products.DoesNotExist:
                 return Response({"Error": f"Product ID {product_id} not found."}, status=status.HTTP_404_NOT_FOUND)
         else:  # No ID means delete all products
-            count, _ = Products.objects.all().delete()
+            count, _ = Products.objects.update(is_deleted=False)
             return Response({"Success": f"All {count} products deleted successfully."},
                             status=status.HTTP_204_NO_CONTENT)
