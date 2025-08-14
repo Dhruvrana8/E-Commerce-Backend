@@ -50,3 +50,20 @@ class ProductListView(APIView):
             Products.objects.update(is_deleted=True)
             return Response({"Success": f"All products deleted successfully."},
                             status=status.HTTP_204_NO_CONTENT)
+
+    def patch(self, request, format=None):
+        product_id = request.data.get("id")
+        if not product_id:
+            return Response({"error": "Field 'id' is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            product = Products.objects.get(id=product_id)
+        except Products.DoesNotExist:
+            return Response({"error": f"Product ID {product_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ProductsSerializer(product, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return self._get_paginated_products(request, product_id=product_id)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
