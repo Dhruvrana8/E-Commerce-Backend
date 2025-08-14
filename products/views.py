@@ -7,10 +7,10 @@ from e_commerce_application.pagination import CustomPageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
 
-
 # Create your views here.
 class ProductListView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, format=None):
         id = request.GET.get('id')
         products = Products.objects.filter(id=id) if id else Products.objects.all()
@@ -25,7 +25,8 @@ class ProductListView(APIView):
         # have sent the ID of the Product
         id = request.data.get('id')
         if id:
-            return Response({'Error': 'Product ID should not be provided, it is automatically generated.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'Error': 'Product ID should not be provided, it is automatically generated.'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         name = request.data.get('name')
         price = request.data.get('price')
@@ -41,7 +42,7 @@ class ProductListView(APIView):
                 return Response(serializer.errors)
         else:
             return Response(
-            {'Error': 'Name, price, description, and category are required fields.'},
+                {'Error': 'Name, price, description, and category are required fields.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -51,8 +52,8 @@ class ProductListView(APIView):
             products = Products.objects.filter(id=id)
             if products:
                 products.delete()
-                return Response( {"Success":f'The {id} is deleted successfully.'},status=status.HTTP_204_NO_CONTENT)
+                return Response({"Success": f'The {id} is deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
             else:
                 return Response({'Error': f'ID: {id} not found.'}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({"Error":"id is a required field."},status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Error": "id is a required field."}, status=status.HTTP_400_BAD_REQUEST)

@@ -25,10 +25,11 @@ class LoginAuthenticationView(APIView):
         if not user_obj:
             return Response({'Error': 'Invalid username or password'}, status=status.HTTP_400_BAD_REQUEST)
 
-        token , _ = Token.objects.get_or_create(user=user_obj)
+        token, _ = Token.objects.get_or_create(user=user_obj)
         return Response({
-            "Token":str(token),
+            "Token": str(token),
         }, status=status.HTTP_200_OK)
+
 
 class UserRegistrationView(APIView):
     def post(self, request):
@@ -36,7 +37,8 @@ class UserRegistrationView(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
         if not first_name or not username or not password:
-            return Response({"Error": "Username, Password and Firstname are required fields"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Error": "Username, Password and Firstname are required fields"},
+                            status=status.HTTP_400_BAD_REQUEST)
         data = request.data
 
         serialize = UserRegistrationSerializer(data=data)
@@ -44,8 +46,9 @@ class UserRegistrationView(APIView):
             return Response(serialize.errors, status=status.HTTP_400_BAD_REQUEST)
 
         user_obj = serialize.save()
-        token = Token.objects.get_or_create(user=user_obj)
+        token, _ = Token.objects.get_or_create(user=user_obj)
         return Response({
-            "Token":str(token),
+            "Token": str(token),
             "Message": "The User has been registered successfully."
         })
+

@@ -42,7 +42,8 @@ EXTERNAL_APPS = [
     'products',
     'authentication',
     'rest_framework.authtoken',
-    'cart'
+    'cart',
+    'user',
 ]
 
 INSTALLED_APPS += EXTERNAL_APPS
@@ -133,3 +134,5 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ]
 }
+
+AUTH_USER_MODEL = 'authentication.CustomUser'

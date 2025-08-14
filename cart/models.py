@@ -1,11 +1,13 @@
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Sum
 from products.models import Products
 
+
 # Cart Model
 class Cart(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='carts')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def total_price(self):
@@ -13,6 +15,7 @@ class Cart(models.Model):
 
     def __str__(self):
         return f"Cart for {self.user.username}"
+
 
 # CartItem Model to handle products in the cart
 class CartItem(models.Model):
