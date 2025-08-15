@@ -63,7 +63,6 @@ class GetCartItemsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-        print("The user is", request.user)
         cart = Cart.objects.filter(user=request.user).first()
         if not cart:
             return Response({"Error": "Cart not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -111,3 +110,15 @@ class DeleteCartItemView(APIView):
             return Response({"Message": "Product removed from cart."}, status=status.HTTP_204_NO_CONTENT)
         except CartItem.DoesNotExist:
             return Response({"Error": "Product not found in the cart."}, status=status.HTTP_404_NOT_FOUND)
+
+
+class ClearCartView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+        cart = Cart.objects.filter(user=request.user).first()
+        if not cart:
+            return Response({"Error": "Cart not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        cart.delete()
+        return Response({"Message": "Cart deleted successfully."}, status=status.HTTP_204_NO_CONTENT)

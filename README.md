@@ -36,8 +36,8 @@ Handles product listings, details, categories, and search.
 | `/products/`                  | GET       | List all products (with filters, pagination, search) | Completed |
 | `/products/`                  | POST      | Add new product (Admin only)                         | Completed |
 | `/products/?id={id}`          | GET       | Get details of a single product                      | Completed |
-| `/products/{id}/`             | PUT/PATCH | Update product (Admin only)                          |           |
-| `/products/{id}/`             | DELETE    | Delete product (Admin only)                          |           |
+| `/products/{id}/`             | PUT/PATCH | Update product (Admin only)                          | Completed |
+| `/products/{id}/`             | DELETE    | Delete product (Admin only)                          | Completed |
 | `/categories/`                | GET       | List all categories                                  |           |
 | `/products/search/?q=keyword` | GET       | Search products by keyword                           |           |
 
