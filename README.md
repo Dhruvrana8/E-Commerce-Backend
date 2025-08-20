@@ -31,15 +31,17 @@ Handles user accounts, login, registration, and profile management.
 
 Handles product listings, details, categories, and search.
 
-| API                           | Method    | Description                                          | Status    |
-|-------------------------------|-----------|------------------------------------------------------|-----------|
-| `/products/`                  | GET       | List all products (with filters, pagination, search) | Completed |
-| `/products/`                  | POST      | Add new product (Admin only)                         | Completed |
-| `/products/?id={id}`          | GET       | Get details of a single product                      | Completed |
-| `/products/{id}/`             | PUT/PATCH | Update product (Admin only)                          | Completed |
-| `/products/{id}/`             | DELETE    | Delete product (Admin only)                          | Completed |
-| `/categories/`                | GET       | List all categories                                  |           |
-| `/products/search/?q=keyword` | GET       | Search products by keyword                           |           |
+| API                                                            | Method    | Description                                                       | Status    |
+|----------------------------------------------------------------|-----------|-------------------------------------------------------------------|-----------|
+| `/products/`                                                   | GET       | List all products (with filters, pagination, search) (Admin only) | Completed |
+| `/products/`                                                   | POST      | Add new product (Admin only)                                      | Completed |
+| `/products/search?name={name}`                                 | GET       | Get details of a products with that name                          | Completed |
+| `/products/search?category={category}`                         | GET       | Get details of a products in that category                        | Completed |
+| `/products/search?max_price={max_price}&min_price={min_price}` | GET       | Get details of a products with in price range                     | Completed |
+| `/products/search?is_wishlist={is_wishlist}`                   | GET       | Get details of a products in wish list                            | Completed |
+| `/products/`                                                   | PUT/PATCH | Update product (Admin only)                                       | Completed |
+| `/products/`                                                   | DELETE    | Delete product (Admin only)                                       | Completed |
+| `/categories/`                                                 | GET       | List all categories                                               |           |
 
 ---
 

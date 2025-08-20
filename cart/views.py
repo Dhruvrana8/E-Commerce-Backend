@@ -1,8 +1,9 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Cart, CartItem
 from rest_framework.permissions import IsAuthenticated
+
+from .models import Cart, CartItem
 from products.models import Products
 
 
@@ -70,7 +71,6 @@ class GetCartItemsView(APIView):
         cart_items = cart.cart_items.all()
         items_data = []
         total_sum = 0
-        number_of_items = 0
 
         for item in cart_items:
             items_data.append({
@@ -81,10 +81,9 @@ class GetCartItemsView(APIView):
                 "total_price": str(item.total_price),
             })
             total_sum += item.total_price
-            number_of_items += 1
 
         return Response(
-            {"cart_items": items_data, "total_sum": total_sum, "cart_id": cart.id, "number_of_items": number_of_items},
+            {"cart_items": items_data, "total_sum": total_sum, "cart_id": cart.id, "number_of_items": len(items_data)},
             status=status.HTTP_200_OK)
 
 
