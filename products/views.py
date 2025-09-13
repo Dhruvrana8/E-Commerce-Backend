@@ -3,19 +3,20 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
-from products.models import Products
-from products.serializers import ProductsSerializer
+from products.models import Products, Categories
+from products.serializers import ProductsSerializer, CategoriesSerializer
 from e_commerce_application.pagination import CustomPageNumberPagination
 from .filters import ProductFilter
 
 
 class ProductMixin:
-    def _get_paginated_products(self, request, queryset=None):
+    def _get_paginated_products(self, request, queryset=None, Serilizer=None):
         # Default we will get only the products with is_deleted "False".
         queryset = queryset or Products.objects.all().filter(is_deleted=False)
         paginator = CustomPageNumberPagination()
         paginated_products = paginator.paginate_queryset(queryset, request)
-        serializer = ProductsSerializer(paginated_products, many=True)
+        serializer = Serilizer(paginated_products, many=True) if Serilizer else ProductsSerializer(paginated_products,
+                                                                                                   many=True)
         return paginator.get_paginated_response(serializer.data)
 
 
@@ -99,3 +100,74 @@ class ProductSearchView(APIView, ProductMixin):
             return Response(filter.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return self._get_paginated_products(request, filtered_products)
+
+
+class CategoryListView(APIView, ProductMixin):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        name = request.query_params.get("name")
+        # In case we need to see all the category in the future.
+        show_all_category = request.query_params.get("show_all_category")
+        if show_all_category:
+            categories = Categories.objects.all()
+        else:
+            categories = Categories.objects.filter(name=name) if name else Categories.objects.filter(is_deleted=False)
+        return self._get_paginated_products(request, categories, CategoriesSerializer)
+
+    def post(self, request):
+        # Expect a list of category objects: [{"name": "Category1"}, {"name": "Category2"}]
+        categories_data = request.data.get("categories")
+        if not categories_data or not isinstance(categories_data, list):
+            return Response({"error": "Expected a list of categories."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Optional: Avoid duplicates
+        existing_names = set(
+            Categories.objects.filter(name__in=[categorie.get('name') for categorie in categories_data]).values_list(
+                'name', flat=True))
+        categories_to_create = [categorie for categorie in categories_data if
+                                categorie.get('name') not in existing_names]
+
+        if not categories_to_create:
+            return Response({"message": "All categories already exist."}, status=status.HTTP_200_OK)
+
+        serializer = CategoriesSerializer(data=categories_to_create, many=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "data": serializer.data},
+                status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, format=None):
+        category_id = request.data.get('category_id')
+        if not category_id or not isinstance(category_id, int):
+            return Response({"error": "Field 'category_id'(int) is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        category = Categories.objects.get(id=category_id)
+        if category:
+            category.is_deleted = True
+            category.save()
+            return Response({"Success": f"Category ID {category_id} deleted successfully."},
+                            status=status.HTTP_204_NO_CONTENT)
+
+        return Response({"error": f"Category ID {category_id} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    def patch(self, request, format=None):
+        category_id = request.data.get('id')
+        if not category_id or not isinstance(category_id, int):
+            return Response({"error": "Field 'category_id'(int) is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            category = Categories.objects.get(id=category_id)
+        except Categories.DoesNotExist:
+            return Response({"error": f"Category ID{id} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CategoriesSerializer(category, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"success": True, "data": serializer.data})
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
