@@ -36,19 +36,21 @@ class AddCartItemView(APIView):
 
         return Response({"Message": "Product added to cart."}, status=status.HTTP_201_CREATED)
 
-    def put(self, request):
-        product_id = request.data.get('product_id')
-        cart_id = request.data.get('cart_id')
-        quantity = request.data.get('quantity', 1)
 
-        if quantity <= 0:
+class UpdateCartItemView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    # We are getting the item_id from the API
+    def put(self, request, item_id):
+        quantity = request.data.get('quantity')
+        if not quantity:
             return Response({"Error": "Quantity must be greater than 0."}, status=status.HTTP_400_BAD_REQUEST)
-
         try:
-            cart = Cart.objects.get(id=cart_id)
-            product = Products.objects.get(id=product_id)
+            cart = Cart.objects.get(user=request.user)
+            product = Products.objects.get(id=item_id)
         except Cart.DoesNotExist:
             return Response({"Error": "Cart or Product not found."}, status=status.HTTP_404_NOT_FOUND)
+
         cart_item = CartItem.objects.get(cart=cart, product=product)
 
         if cart_item.quantity != quantity and cart_item.quantity >= 0:
@@ -57,6 +59,16 @@ class AddCartItemView(APIView):
         else:
             return Response({"Error": "The Item can not be less that zero "}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"Message": "Item added to cart."}, status=status.HTTP_200_OK)
+
+    def delete(self, request, item_id):
+        try:
+            cart = Cart.objects.get(user=request.user)
+            product = Products.objects.get(id=item_id)
+        except Cart.DoesNotExist or Products.DoesNotExist:
+            return Response({"Error": "Product or Cart not found."}, status=status.HTTP_404_NOT_FOUND)
+        cart_item = CartItem.objects.get(cart=cart, product=product)
+        cart_item.delete()
+        return Response({"Message": "Item removed from cart."}, status=status.HTTP_200_OK)
 
 
 # This is the API used to view all the products which are added in the cart
@@ -96,12 +108,10 @@ class DeleteCartItemView(APIView):
 
         try:
             product = Products.objects.get(id=product_id)
-        except Products.DoesNotExist:
-            return Response({"Error": "Product not found."}, status=status.HTTP_404_NOT_FOUND)
+            cart = Cart.objects.get(user=request.user)
+        except Products.DoesNotExist or Cart.DoesNotExist:
+            return Response({"Error": "Product or Cart not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        cart = Cart.objects.filter(user=request.user).first()
-        if not cart:
-            return Response({"Error": "Cart not found."}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             cart_item = CartItem.objects.get(cart=cart, product=product)
@@ -115,9 +125,9 @@ class ClearCartView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, format=None):
-        cart = Cart.objects.filter(user=request.user).first()
-        if not cart:
+        try:
+            cart = Cart.objects.get(user=request.user)
+        except Cart.DoesNotExist:
             return Response({"Error": "Cart not found."}, status=status.HTTP_404_NOT_FOUND)
-
         cart.delete()
         return Response({"Message": "Cart deleted successfully."}, status=status.HTTP_204_NO_CONTENT)

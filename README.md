@@ -41,7 +41,7 @@ Handles product listings, details, categories, and search.
 | `/products/search?is_wishlist={is_wishlist}`                   | GET       | Get details of a products in wish list                            | Completed |
 | `/products/`                                                   | PUT/PATCH | Update product (Admin only)                                       | Completed |
 | `/products/`                                                   | DELETE    | Delete product (Admin only)                                       | Completed |
-| `/categories/`                                                 | GET       | List all categories                                               |           |
+| `/categories/`                                                 | GET       | List all categories                                               |   Completed        |
 
 ---
 
@@ -53,9 +53,9 @@ Manage user carts and items in it.
 |--------------------------|-----------|-----------------------------------|-----------|
 | `/cart/items/`           | GET       | View all items in the user’s cart | Completed |
 | `/cart/items/`           | POST      | Add item to cart                  | Completed |
-| `/cart/items/{item_id}/` | PUT/PATCH | Update quantity of an item        |           |
-| `/cart/items/{item_id}/` | DELETE    | Remove an item from cart          |           |
-| `/cart/clear/`           | POST      | Clear all items in the cart       |           |
+| `/cart/items/{item_id}/` | PUT/PATCH | Update quantity of an item        | Completed |
+| `/cart/items/{item_id}/` | DELETE    | Remove an item from cart          | Completed |
+| `/cart/clear/`           | POST      | Clear all items in the cart       | Completed |
 
 ---
 
