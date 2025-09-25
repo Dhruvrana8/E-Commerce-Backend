@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class Categories(models.Model):
@@ -22,10 +23,22 @@ class Products(models.Model):
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_wishlist = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['id']
 
     def __str__(self):
         return self.name
+
+
+class Wishlist(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wishlists')
+    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name="wishlisted_by")
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ("user", "product")
+
+    def __str__(self):
+        return f"{self.user} → {self.product}"

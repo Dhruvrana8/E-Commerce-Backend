@@ -1,10 +1,12 @@
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from django.shortcuts import get_object_or_404
 
-from products.models import Products, Categories
-from products.serializers import ProductsSerializer, CategoriesSerializer
+from products.models import Products, Categories, Wishlist
+from products.serializers import ProductsSerializer, CategoriesSerializer, WishlistSerializer
 from e_commerce_application.pagination import CustomPageNumberPagination
 from .filters import ProductFilter
 
@@ -26,7 +28,7 @@ class ProductListView(APIView, ProductMixin):
     permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request, format=None):
-        product_id = request.query_params.get("id")
+        product_id = request.query_params.get("product_id")
         products = Products.objects.all().filter(id=product_id) if product_id else None
         return self._get_paginated_products(request, products)
 
@@ -53,7 +55,7 @@ class ProductListView(APIView, ProductMixin):
         return Response(error_response, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, format=None):
-        product_id = request.data.get('id')
+        product_id = request.data.get('product_id')
 
         if product_id:  # Delete a specific product
             try:
@@ -171,3 +173,65 @@ class CategoryListView(APIView, ProductMixin):
             return Response({"success": True, "data": serializer.data})
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductWishListView(APIView, ProductMixin):
+    permission_classes = [IsAuthenticated]
+
+    # This API will be used to get the Wishlist of the User
+    def get(self, request):
+        show_all_product = request.query_params.get("show_all_product")
+        # Just need to check if the user need to see all the Wishlist items or not
+        if show_all_product:
+            show_all_product = show_all_product.lower() in ['true', '1', 'y', 'yes']
+
+        wishlist = Wishlist.objects.all() if show_all_product else Wishlist.objects.filter(is_deleted=False)
+        if wishlist:
+            return self._get_paginated_products(request, wishlist,WishlistSerializer)
+        return Response({"error": "No wishlists found."}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self,request):
+        product_id = request.data.get('product_id')
+        if not product_id or not isinstance(product_id, int):
+            return Response({"error":"product_id(int) is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            product = Products.objects.get(id=product_id)
+        except Products.DoesNotExist:
+            return Response({"error":"Product not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        wishlist_item, created = Wishlist.objects.get_or_create(
+            user=request.user,
+            product=product
+        )
+
+        if created:
+            return Response(
+                {"message": "Product added to wishlist"},
+                status=status.HTTP_201_CREATED
+            )
+        else:
+            return Response(
+                {"message": "Product already in wishlist"},
+                status=status.HTTP_200_OK
+            )
+
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def remove_product_from_wishlist( request, product_id, format=None):
+    # Check if product exists and is not deleted
+    product = get_object_or_404(Products, id=product_id, is_deleted=False)
+
+    try:
+        wishlist_item, created = Wishlist.objects.get_or_create(
+            user=request.user,
+            product=product
+        )
+    except Wishlist.DoesNotExist:
+        return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    wishlist_item.is_deleted = True
+    wishlist_item.save()
+    return Response({"success": True,"message": "Product removed from wishlist"}, status=status.HTTP_200_OK)
+

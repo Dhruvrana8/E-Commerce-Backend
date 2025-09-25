@@ -41,7 +41,7 @@ Handles product listings, details, categories, and search.
 | `/products/search?is_wishlist={is_wishlist}`                   | GET       | Get details of a products in wish list                            | Completed |
 | `/products/`                                                   | PUT/PATCH | Update product (Admin only)                                       | Completed |
 | `/products/`                                                   | DELETE    | Delete product (Admin only)                                       | Completed |
-| `/categories/`                                                 | GET       | List all categories                                               |   Completed        |
+| `/categories/`                                                 | GET       | List all categories                                               | Completed |
 
 ---
 
@@ -63,11 +63,11 @@ Manage user carts and items in it.
 
 Optional, allows users to maintain a wishlist.
 
-| API                    | Method | Description               | Status |
-|------------------------|--------|---------------------------|--------|
-| `/wishlist/`           | GET    | View wishlist items       |        |
-| `/wishlist/`           | POST   | Add item to wishlist      |        |
-| `/wishlist/{item_id}/` | DELETE | Remove item from wishlist |        |
+| API                    | Method | Description               | Status    |
+|------------------------|--------|---------------------------|-----------|
+| `/wishlist/`           | GET    | View wishlist items       | Completed |
+| `/wishlist/`           | POST   | Add item to wishlist      | Completed |
+| `/wishlist/{item_id}/` | DELETE | Remove item from wishlist | Completed |
 
 ---
 
